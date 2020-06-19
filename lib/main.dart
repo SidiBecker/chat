@@ -1,18 +1,19 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:chat_firebase/chat_screen.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async {
   runApp(MyApp());
-
-
-  Firestore.instance.collection("col").document("doc").setData({"texto": "teste"});
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+          primarySwatch: Colors.green,
+          iconTheme: IconThemeData(color: Colors.green)),
+      home: ChatScreen(),
     );
   }
 }
