@@ -30,7 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
       data['text'] = text;
     }
 
-     data['time'] = Timestamp.now();
+    data['time'] = Timestamp.now();
 
     Firestore.instance.collection('messages').add(data);
   }
@@ -45,9 +45,11 @@ class _ChatScreenState extends State<ChatScreen> {
         children: <Widget>[
           Expanded(
             child: StreamBuilder(
-                stream: Firestore.instance.collection('messages').orderBy('time').snapshots(),
+                stream: Firestore.instance
+                    .collection('messages')
+                    .orderBy('time')
+                    .snapshots(),
                 builder: (context, snapshot) {
-
                   switch (snapshot.connectionState) {
                     case ConnectionState.none:
                     case ConnectionState.waiting:
@@ -55,17 +57,17 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: CircularProgressIndicator(),
                       );
                     default:
-                      List<DocumentSnapshot> document = snapshot.data.documents.reversed.toList();
+                      List<DocumentSnapshot> document =
+                          snapshot.data.documents.reversed.toList();
 
                       return ListView.builder(
-                        itemCount: document.length,
-                        reverse: true,
-                        itemBuilder: (context, index){
-                          return ListTile(
-                            title: Text(document[index].data['text']),
-                          );
-                        });
-                      
+                          itemCount: document.length,
+                          reverse: true,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Text(document[index].data['text']),
+                            );
+                          });
                   }
                 }),
           ),
