@@ -11,8 +11,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-          primarySwatch: Colors.purple,
-          iconTheme: IconThemeData(color: Colors.purple)),
+          primarySwatch: Colors.green,
+          iconTheme: IconThemeData(color: Colors.green)),
       home: ChatScreen(),
     );
   }
