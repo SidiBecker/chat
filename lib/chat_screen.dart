@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'chat_message.dart';
+
 class ChatScreen extends StatefulWidget {
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -129,9 +131,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           itemCount: document.length,
                           reverse: true,
                           itemBuilder: (context, index) {
-                            return ListTile(
-                              title: Text(document[index].data['text']),
-                            );
+                            return ChatMessage(document[index].data, true);
                           });
                   }
                 }),
