@@ -21,6 +21,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String _title = "Olá";
 
   FirebaseUser _currentUser;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -30,7 +31,9 @@ class _ChatScreenState extends State<ChatScreen> {
       _currentUser = user;
 
       setState(() {
-        _title = "Bem vindo " + user.displayName + "!";
+        _title = _currentUser != null
+            ? "Olá, " + user.displayName + "!"
+            : "Chat App";
       });
     });
   }
@@ -84,8 +87,13 @@ class _ChatScreenState extends State<ChatScreen> {
     if (img != null) {
       StorageUploadTask task = FirebaseStorage.instance
           .ref()
-          .child(DateTime.now().millisecondsSinceEpoch.toString())
+          .child(_currentUser.uid +
+              DateTime.now().millisecondsSinceEpoch.toString())
           .putFile(File(img.path));
+
+      setState(() {
+        _isLoading = true;
+      });
 
       StorageTaskSnapshot taskSnapshot = await task.onComplete;
       String url = await taskSnapshot.ref.getDownloadURL();
@@ -97,6 +105,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     data['time'] = Timestamp.now();
+    setState(() {
+      _isLoading = false;
+    });
 
     Firestore.instance.collection('messages').add(data);
   }
@@ -107,6 +118,27 @@ class _ChatScreenState extends State<ChatScreen> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(_title),
+        centerTitle: true,
+        elevation: 0,
+        actions: [
+          _currentUser != null
+              ? IconButton(
+                  icon: Icon(Icons.exit_to_app),
+                  onPressed: () {
+                    FirebaseAuth.instance.signOut();
+                    googleSignIn.signOut();
+                    _scaffoldKey.currentState.showSnackBar(SnackBar(
+                      content: Text('Você saiu com sucesso!'),
+                    ));
+                  },
+                )
+              : IconButton(
+                  icon: Icon(Icons.person),
+                  onPressed: () {
+                    _getUser();
+                  },
+                )
+        ],
       ),
       body: Column(
         children: <Widget>[
@@ -131,12 +163,16 @@ class _ChatScreenState extends State<ChatScreen> {
                           itemCount: document.length,
                           reverse: true,
                           itemBuilder: (context, index) {
-                            return ChatMessage(document[index].data, true);
+                            return ChatMessage(
+                                document[index].data,
+                                document[index].data['uid'] ==
+                                    _currentUser?.uid);
                           });
                   }
                 }),
           ),
-          TextComposer(_sendMessage),
+          _isLoading ? LinearProgressIndicator() : Container(),
+          _currentUser != null ? TextComposer(_sendMessage) : Container(),
         ],
       ),
     );
