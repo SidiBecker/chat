@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:chat_firebase/text_composer.dart';
+import 'package:chat_app/text_composer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
