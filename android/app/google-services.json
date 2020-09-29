@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:672843058517:android:2bff7433f47e86cf8ff3dc",
         "android_client_info": {
-          "package_name": "br.com.sidibecker.chatfirebase"
+          "package_name": "br.com.sidibecker.chatapp"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "672843058517-icacakouusa2ehqu8nbbkrl3hsj3cbri.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "br.com.sidibecker.chatfirebase",
+            "package_name": "br.com.sidibecker.chatapp",
             "certificate_hash": "873f4d85e5fb54d58cf1ba6d57bc73bf7cf13703"
           }
         },
