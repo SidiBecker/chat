@@ -8,9 +8,46 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:672843058517:android:2bff7433f47e86cf8ff3dc",
+        "mobilesdk_app_id": "1:672843058517:android:a6d6ef2899c982568ff3dc",
         "android_client_info": {
           "package_name": "br.com.sidibecker.chatapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "672843058517-i0j9tgu40do3ik5e51mj88cv7p68ds8u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.sidibecker.chatapp",
+            "certificate_hash": "873f4d85e5fb54d58cf1ba6d57bc73bf7cf13703"
+          }
+        },
+        {
+          "client_id": "672843058517-v0aa60498ngq18aus0rfbnvu7vogngf3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAakNiRjpY6O6yolVSu2CRCWc3X1UTaGEA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "672843058517-v0aa60498ngq18aus0rfbnvu7vogngf3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:672843058517:android:2bff7433f47e86cf8ff3dc",
+        "android_client_info": {
+          "package_name": "br.com.sidibecker.chatfirebase"
         }
       },
       "oauth_client": [
@@ -18,7 +55,7 @@
           "client_id": "672843058517-icacakouusa2ehqu8nbbkrl3hsj3cbri.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "br.com.sidibecker.chatapp",
+            "package_name": "br.com.sidibecker.chatfirebase",
             "certificate_hash": "873f4d85e5fb54d58cf1ba6d57bc73bf7cf13703"
           }
         },
