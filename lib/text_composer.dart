@@ -37,12 +37,12 @@ class _TextComposerState extends State<TextComposer> {
                   InputDecoration.collapsed(hintText: "Enviar uma mensagem"),
               onChanged: (text) {
                 setState(() {
-                  _isWriting = text.isNotEmpty;
+                  _isWriting = text.isNotEmpty && text.trim().isNotEmpty;
                 });
               },
               onSubmitted: (value) {
                 if (value.isNotEmpty) {
-                  widget.sendMessage(text: value);
+                  widget.sendMessage(text: value.trim());
                   reset();
                 }
               },

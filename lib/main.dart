@@ -1,4 +1,4 @@
-import 'package:chat_app/chat_screen.dart';
+import 'package:chat_app/home_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           primarySwatch: Colors.green,
           iconTheme: IconThemeData(color: Colors.green)),
-      home: ChatScreen(),
+      home: HomeScreen(),
     );
   }
 }
