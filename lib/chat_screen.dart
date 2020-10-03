@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:chat_app/firebase_util.dart';
+import 'package:chat_app/login_screen.dart';
 import 'package:chat_app/text_composer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,6 +32,8 @@ class _ChatScreenState extends State<ChatScreen> {
     FirebaseAuth.instance.onAuthStateChanged.listen((user) {
       _currentUser = user;
 
+      if (!mounted) return;
+
       setState(() {
         _title = _currentUser != null
             ? "Olá, " + user.displayName + "!"
@@ -39,33 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<FirebaseUser> _getUser() async {
-    if (_currentUser != null) return _currentUser;
-
-    try {
-      //Login Google
-      final GoogleSignInAccount googleSigningAccount =
-          await googleSignIn.signIn();
-
-      //Dados da Autenticação com Google
-      final GoogleSignInAuthentication googleSignInAuthentication =
-          await googleSigningAccount.authentication;
-
-      //Extrai as credenciais
-      final AuthCredential credential = GoogleAuthProvider.getCredential(
-          idToken: googleSignInAuthentication.idToken,
-          accessToken: googleSignInAuthentication.accessToken);
-
-      //Login com Firebase
-      final AuthResult authResult =
-          await FirebaseAuth.instance.signInWithCredential(credential);
-
-      final FirebaseUser user = authResult.user;
-
-      return user;
-    } catch (e) {
-      //Se der erro executa aqui
-      return null;
-    }
+    return _currentUser = await FireBaseUtil.getUser();
   }
 
   void _sendMessage({String text, PickedFile img}) async {
@@ -101,6 +79,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     if (text != null) {
+      
       data['text'] = text;
     }
 
@@ -127,9 +106,18 @@ class _ChatScreenState extends State<ChatScreen> {
                   onPressed: () {
                     FirebaseAuth.instance.signOut();
                     googleSignIn.signOut();
-                    _scaffoldKey.currentState.showSnackBar(SnackBar(
-                      content: Text('Você saiu com sucesso!'),
-                    ));
+
+                    PageRouteBuilder _loginRoute = new PageRouteBuilder(
+                      pageBuilder: (BuildContext context, _, __) {
+                        return LoginScreen(true);
+                      },
+                    );
+
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      _loginRoute,
+                      (Route<dynamic> r) => false,
+                    );
                   },
                 )
               : IconButton(
