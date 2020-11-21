@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class ChatMessage extends StatelessWidget {
-  ChatMessage(this.data, this.ownMessage);
+  ChatMessage(this.data, this.user, this.ownMessage);
 
   final Map<String, dynamic> data;
+  final Map<String, dynamic> user;
   final bool ownMessage;
 
   @override
@@ -16,7 +17,7 @@ class ChatMessage extends StatelessWidget {
               ? Padding(
                   padding: EdgeInsets.only(right: 16),
                   child: CircleAvatar(
-                    backgroundImage: NetworkImage(data["senderPhoto"]),
+                    backgroundImage: NetworkImage(user["photoUrl"]),
                   ),
                 )
               : Container(),
@@ -37,7 +38,7 @@ class ChatMessage extends StatelessWidget {
                         style: TextStyle(fontSize: 16),
                       ),
                 Text(
-                  data['senderName'],
+                  user['name'],
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                 ),
               ],
@@ -47,7 +48,7 @@ class ChatMessage extends StatelessWidget {
               ? Padding(
                   padding: EdgeInsets.only(left: 16),
                   child: CircleAvatar(
-                    backgroundImage: NetworkImage(data["senderPhoto"]),
+                    backgroundImage: NetworkImage(user["photoUrl"]),
                   ),
                 )
               : Container(),

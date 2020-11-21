@@ -13,10 +13,6 @@ import 'package:image_picker/image_picker.dart';
 import 'chat_message.dart';
 
 class ChatScreen extends StatefulWidget {
-  ChatScreen(this.chatData);
-
-  final Map chatData;
-
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -28,8 +24,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   FirebaseUser _currentUser;
   bool _isLoading = false;
-
-  List _messages = [];
 
   @override
   void initState() {
@@ -46,8 +40,6 @@ class _ChatScreenState extends State<ChatScreen> {
             : "Chat App";
       });
     });
-
-    _messages = widget.chatData["messages"];
   }
 
   Future<FirebaseUser> _getUser() async {
@@ -65,7 +57,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     Map<String, dynamic> data = {
-      "senderUid": user.uid,
+      "uid": user.uid,
+      "senderName": user.displayName,
+      "senderPhoto": user.photoUrl
     };
 
     if (img != null) {
@@ -85,6 +79,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     if (text != null) {
+      
       data['text'] = text;
     }
 
@@ -93,24 +88,11 @@ class _ChatScreenState extends State<ChatScreen> {
       _isLoading = false;
     });
 
-    //TODO: Se o documento ainda não existe
-    // DocumentReference documentChat =
-    //     Firestore.instance.collection('chats').document();
-    // documentChat.setData({
-    //   'users': widget.chatData["users"],
-    //   'messages': [],
-    //   'id': documentChat.documentID
-    // });
-
-    String id = widget.chatData["id"];
-
-    Firestore.instance.collection('chats/$id/messages').add(data);
+    Firestore.instance.collection('messages').add(data);
   }
 
   @override
   Widget build(BuildContext context) {
-    String _chatId = widget.chatData["id"];
-
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -151,35 +133,29 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: StreamBuilder(
                 stream: Firestore.instance
-                    .collection('chats/$_chatId/messages')
+                    .collection('messages')
                     .orderBy('time')
                     .snapshots(),
-                builder: (context, chatSnapshot) {
-                  switch (chatSnapshot.connectionState) {
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
                     case ConnectionState.none:
                     case ConnectionState.waiting:
                       return Center(
                         child: CircularProgressIndicator(),
                       );
                     default:
-                      if (_currentUser == null) {
-                        return Container();
-                      }
-
-                      List<DocumentSnapshot> documents =
-                          chatSnapshot.data.documents.reversed.toList();
+                      List<DocumentSnapshot> document =
+                          snapshot.data.documents.reversed.toList();
 
                       return ListView.builder(
-                          itemCount: documents.length,
+                          itemCount: document.length,
                           reverse: true,
                           itemBuilder: (context, index) {
-                            String senderUid = documents[index]["senderUid"];
-
-                            Map user = widget.chatData["users"]
-                                .firstWhere((user) => user["uid"] == senderUid);
-
-                            return ChatMessage(documents[index].data, user,
-                                (user["uid"] == _currentUser.uid));
+                            return Container();
+                            // return ChatMessage(
+                            //     document[index].data,
+                            //     document[index].data['uid'] ==
+                            //         _currentUser?.uid);
                           });
                   }
                 }),

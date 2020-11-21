@@ -1,5 +1,5 @@
 import 'package:chat_app/chat_list.dart';
-import 'package:chat_app/chat_screen.dart';
+import 'package:chat_app/chat_screen-old.dart';
 import 'package:chat_app/firebase_util.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -29,9 +29,6 @@ class _LoginScreenState extends State<LoginScreen> {
   );
 
   void _login() async {
-    FirebaseUser currentUser = await FireBaseUtil.getUser();
-
-    print(currentUser.displayName);
 
     Navigator.pushAndRemoveUntil(
         context, _chatListRoute, (Route<dynamic> r) => false);

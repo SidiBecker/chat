@@ -1,22 +1,44 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ChatCard extends StatelessWidget {
-  ChatCard(this.data, this.currentUser, this.lastMessage);
+class ChatCard extends StatefulWidget {
+  ChatCard(this.data, this.currentUser, this.chatId);
 
   final Map<String, dynamic> data;
 
   final FirebaseUser currentUser;
 
-  final Map lastMessage;
+  final String chatId;
+
+  @override
+  _ChatCardState createState() => _ChatCardState();
+}
+
+class _ChatCardState extends State<ChatCard> {
+  Map lastMessageObj;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Map user =
-        data["users"].firstWhere((user) => user["uid"] != currentUser.uid);
+    Map user = widget.data["users"]
+        .firstWhere((user) => user["uid"] != widget.currentUser.uid);
 
-    print(lastMessage["time"].toDate());
+    Firestore.instance
+        .collection('chats/${widget.chatId}/messages')
+        .orderBy("time", descending: true)
+        .limit(1)
+        .getDocuments()
+        .then((value) => {
+              setState(() {
+                lastMessageObj = value.documentChanges.first.document.data;
+              })
+            });
 
     String formatTimestamp(DateTime date, String format) {
       //TODO: FORMATAR DATA
@@ -43,29 +65,36 @@ class ChatCard extends StatelessWidget {
                   user['name'],
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                 ),
-                Text(
-                  lastMessage["text"],
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w300),
-                ),
+                lastMessageObj != null
+                    ? Text(
+                        lastMessageObj["text"],
+                        style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w300),
+                      )
+                    : Container(),
               ],
             ),
           ),
-          Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      formatTimestamp(lastMessage["time"].toDate(), 'hh:mm'),
-                      style:
-                          TextStyle(fontSize: 13, fontWeight: FontWeight.w300),
-                    ),
-                    Text(
-                      formatTimestamp(lastMessage["time"].toDate(), 'd/MM/yy'),
-                      style:
-                          TextStyle(fontSize: 13, fontWeight: FontWeight.w300),
-                    )
-                  ])),
+          lastMessageObj != null
+              ? Padding(
+                  padding: EdgeInsets.only(right: 16),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          formatTimestamp(
+                              lastMessageObj["time"].toDate(), 'hh:mm'),
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w300),
+                        ),
+                        Text(
+                          formatTimestamp(
+                              lastMessageObj["time"].toDate(), 'd/MM/yy'),
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w300),
+                        )
+                      ]))
+              : Container(),
         ],
       ),
     );

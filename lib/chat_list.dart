@@ -1,17 +1,12 @@
 import 'dart:io';
-
 import 'package:chat_app/chat_card.dart';
+import 'package:chat_app/chat_screen.dart';
 import 'package:chat_app/firebase_util.dart';
 import 'package:chat_app/login_screen.dart';
-import 'package:chat_app/text_composer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:image_picker/image_picker.dart';
-
-import 'chat_message.dart';
 
 class ChatList extends StatefulWidget {
   @override
@@ -105,7 +100,7 @@ class ChatListState extends State<ChatList> {
                       List<DocumentSnapshot> document =
                           chatSnapshot.data.documents.reversed.toList();
 
-                      List<DocumentSnapshot> messages = document
+                      List<DocumentSnapshot> chats = document
                           .where((element) =>
                               element["users"]
                                   .where(
@@ -114,18 +109,21 @@ class ChatListState extends State<ChatList> {
                               0)
                           .toList();
 
-                      print('QTDE: ' + messages.length.toString());
+                      print('QTDE MSG: ' + chats.length.toString());
 
                       return ListView.builder(
-                          itemCount: messages.length,
+                          itemCount: chats.length,
                           itemBuilder: (context, index) {
-                            print(messages[index].data);
+                            String chatId = chats[index].data["id"];
 
-                            Map lastMessage =
-                                messages[index].data["messages"].last;
-
-                            return ChatCard(messages[index].data, _currentUser,
-                                lastMessage);
+                            print('chatId: ' + chatId);
+                            
+                            return InkWell(
+                              child: ChatCard(
+                                  chats[index].data, _currentUser, chatId),
+                              onTap: () => {_goToChat(chats[index].data)},
+                              onLongPress: () => {print('onLongPress')},
+                            );
                           });
                   }
                 }),
@@ -133,5 +131,26 @@ class ChatListState extends State<ChatList> {
         ],
       ),
     );
+  }
+
+  void _goToChat(chatData) {
+    print('tap');
+
+    PageRouteBuilder chatRoute = new PageRouteBuilder(
+      pageBuilder: (BuildContext context, _, __) {
+        return ChatScreen(chatData);
+      },
+    );
+
+    Navigator.push(context, chatRoute);
+  }
+
+  Future<QuerySnapshot> _getLastMessage(chatId) async {
+    Firestore rootRef = Firestore.instance;
+
+    Query query =
+        rootRef.collection('chats/$chatId/messages').orderBy("time").limit(1);
+
+    return await query.getDocuments();
   }
 }
