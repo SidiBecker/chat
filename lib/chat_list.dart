@@ -15,10 +15,14 @@ class ChatList extends StatefulWidget {
 
 class ChatListState extends State<ChatList> {
   final GoogleSignIn googleSignIn = GoogleSignIn();
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   String _title = "Olá";
 
   FirebaseUser _currentUser;
+
+  TextEditingController controllerEmail = TextEditingController();
 
   @override
   void initState() {
@@ -41,6 +45,30 @@ class ChatListState extends State<ChatList> {
     return _currentUser = await FireBaseUtil.getUser();
   }
 
+  createtAlertDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Insira o e-mail'),
+            content: TextField(
+              keyboardType: TextInputType.emailAddress,
+              controller: controllerEmail,
+              autofocus: true,
+            ),
+            actions: [
+              MaterialButton(
+                elevation: 0.5,
+                onPressed: () {
+                  Navigator.of(context).pop(controllerEmail.text.toString());
+                },
+                child: Text('OK'),
+              )
+            ],
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,6 +84,7 @@ class ChatListState extends State<ChatList> {
                   onPressed: () {
                     FirebaseAuth.instance.signOut();
                     googleSignIn.signOut();
+                    googleSignIn.disconnect();
 
                     PageRouteBuilder _loginRoute = new PageRouteBuilder(
                       pageBuilder: (BuildContext context, _, __) {
@@ -82,7 +111,7 @@ class ChatListState extends State<ChatList> {
         children: <Widget>[
           Expanded(
             child: StreamBuilder(
-                stream: Firestore.instance.collection('chats').snapshots(),
+                stream: Firestore.instance.collection('chats').orderBy('lastMessage').snapshots(),
                 builder: (context, chatSnapshot) {
                   switch (chatSnapshot.connectionState) {
                     case ConnectionState.none:
@@ -103,8 +132,9 @@ class ChatListState extends State<ChatList> {
                       List<DocumentSnapshot> chats = document
                           .where((element) =>
                               element["users"]
-                                  .where(
-                                      (user) => user["uid"] == _currentUser.uid)
+                                  .where((user) =>
+                                      user["uid"] == _currentUser.uid ||
+                                      user["email"] == _currentUser.email)
                                   .length >
                               0)
                           .toList();
@@ -117,7 +147,7 @@ class ChatListState extends State<ChatList> {
                             String chatId = chats[index].data["id"];
 
                             print('chatId: ' + chatId);
-                            
+
                             return InkWell(
                               child: ChatCard(
                                   chats[index].data, _currentUser, chatId),
@@ -130,6 +160,15 @@ class ChatListState extends State<ChatList> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            createtAlertDialog(context).then((value) => {
+                  print(value),
+                  _createChat(value),
+                  controllerEmail.clear(),
+                });
+          },
+          child: Icon(Icons.add)),
     );
   }
 
@@ -145,12 +184,26 @@ class ChatListState extends State<ChatList> {
     Navigator.push(context, chatRoute);
   }
 
-  Future<QuerySnapshot> _getLastMessage(chatId) async {
-    Firestore rootRef = Firestore.instance;
+  void _createChat(String email) {
+    if (email != _currentUser.email) {
+      Map myUser = {
+        'email': _currentUser.email,
+        'uid': _currentUser.uid,
+        'photoUrl': _currentUser.photoUrl,
+        'name': _currentUser.displayName
+      };
 
-    Query query =
-        rootRef.collection('chats/$chatId/messages').orderBy("time").limit(1);
+      Map anotherUser = {
+        'email': email,
+        'uid': null,
+        'photoUrl': null,
+        'name': null
+      };
 
-    return await query.getDocuments();
+      List<Map> users = [myUser, anotherUser];
+      DocumentReference documentChat =
+          Firestore.instance.collection('chats').document();
+      documentChat.setData({'users': users, 'id': documentChat.documentID});
+    }
   }
 }

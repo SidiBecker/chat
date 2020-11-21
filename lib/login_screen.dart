@@ -29,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   );
 
   void _login() async {
+    await FireBaseUtil.getUser();
 
     Navigator.pushAndRemoveUntil(
         context, _chatListRoute, (Route<dynamic> r) => false);

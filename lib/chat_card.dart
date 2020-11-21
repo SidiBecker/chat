@@ -41,9 +41,6 @@ class _ChatCardState extends State<ChatCard> {
             });
 
     String formatTimestamp(DateTime date, String format) {
-      //TODO: FORMATAR DATA
-
-      // var format = new DateFormat('d/MM/yy - hh:mm');
       return new DateFormat(format).format(date);
     }
 
@@ -53,16 +50,20 @@ class _ChatCardState extends State<ChatCard> {
         children: [
           Padding(
             padding: EdgeInsets.only(right: 16),
-            child: CircleAvatar(
-              backgroundImage: NetworkImage(user["photoUrl"]),
-            ),
+            child: user["photoUrl"] != null
+                ? CircleAvatar(
+                    backgroundImage: NetworkImage(user["photoUrl"]),
+                  )
+                : CircleAvatar(
+                    child: Icon(Icons.person),
+                  ),
           ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user['name'],
+                  user['name'] ?? user['email'],
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                 ),
                 lastMessageObj != null

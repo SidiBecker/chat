@@ -104,6 +104,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     String id = widget.chatData["id"];
 
+
+    Firestore.instance.collection('chats').document(id).updateData({'lastMessage': Timestamp.now()});
+
     Firestore.instance.collection('chats/$id/messages').add(data);
   }
 
