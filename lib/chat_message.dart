@@ -55,7 +55,7 @@ class ChatMessage extends StatelessWidget {
                         ),
                 ),
                 Text(
-                  new DateFormat('hh:mm')
+                  new DateFormat('HH:mm')
                       .format(data['time'].toDate().toLocal()),
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.w300),
                 ),

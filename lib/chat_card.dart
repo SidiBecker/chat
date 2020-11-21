@@ -93,7 +93,7 @@ class _ChatCardState extends State<ChatCard> {
                         Text(
                           formatTimestamp(
                               lastMessageObj["time"].toDate().toLocal(),
-                              'hh:mm'),
+                              'HH:mm'),
                           style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.w300),
                         ),
