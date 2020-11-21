@@ -29,7 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
   );
 
   void _login() async {
-    await FireBaseUtil.getUser();
+    FirebaseUser user = await FireBaseUtil.getUser();
+
+    print('Login com: ' + user.displayName);
 
     Navigator.pushAndRemoveUntil(
         context, _chatListRoute, (Route<dynamic> r) => false);
@@ -59,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         key: _scaffoldKey,
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.deepPurple,
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -71,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Vem com a galera!",
+                        "Salve salve!",
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,

@@ -20,17 +20,18 @@ class _TextComposerState extends State<TextComposer> {
       margin: const EdgeInsets.symmetric(horizontal: 7.0),
       child: Row(
         children: <Widget>[
-          IconButton(
-            icon: Icon(Icons.photo_camera),
-            onPressed: () async {
-              ImagePicker imagePicker = ImagePicker();
-              PickedFile imgFile =
-                  await imagePicker.getImage(source: ImageSource.camera);
-              if (imgFile == null) return;
+          // IconButton(
+          //     icon: Icon(Icons.photo_camera),
+          //     // onPressed: () async {
+          //     //   ImagePicker imagePicker = ImagePicker();
+          //     //   PickedFile imgFile =
+          //     //       await imagePicker.getImage(source: ImageSource.camera);
+          //     //   if (imgFile == null) return;
 
-              widget.sendMessage(img: imgFile);
-            },
-          ),
+          //     //   widget.sendMessage(img: imgFile);
+          //     // },
+          //     disabledColor: Colors.grey,
+          //     onPressed: null),
           Expanded(
             child: TextField(
               decoration:

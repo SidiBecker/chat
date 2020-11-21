@@ -1,3 +1,4 @@
+import 'package:chat_app/chat_list.dart';
 import 'package:chat_app/chat_screen-old.dart';
 import 'package:chat_app/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,9 +16,9 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   );
 
-  PageRouteBuilder _chatRoute = new PageRouteBuilder(
+  PageRouteBuilder _chatList = new PageRouteBuilder(
     pageBuilder: (BuildContext context, _, __) {
-      return ChatScreen();
+      return ChatList();
     },
   );
 
@@ -33,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     PageRouteBuilder route = _loginRoute;
 
     FirebaseAuth.instance.currentUser().then((user) => {
-          if (user != null) {route = _chatRoute},
+          if (user != null) {route = _chatList},
           _redirect(route)
         });
 

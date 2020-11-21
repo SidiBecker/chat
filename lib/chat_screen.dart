@@ -15,7 +15,7 @@ import 'chat_message.dart';
 class ChatScreen extends StatefulWidget {
   ChatScreen(this.chatData);
 
-  final Map chatData;
+  Map chatData;
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -29,29 +29,33 @@ class _ChatScreenState extends State<ChatScreen> {
   FirebaseUser _currentUser;
   bool _isLoading = false;
 
-  List _messages = [];
-
   @override
   void initState() {
     super.initState();
 
-    FirebaseAuth.instance.onAuthStateChanged.listen((user) {
-      _currentUser = user;
+    print('usuarios');
+    print(widget.chatData["users"]);
 
-      if (!mounted) return;
+    _getUser().then((value) => _getDataAnotherUser());
 
-      setState(() {
-        _title = _currentUser != null
-            ? "Olá, " + user.displayName + "!"
-            : "Chat App";
-      });
-    });
-
-    _messages = widget.chatData["messages"];
+    _updateUsers();
   }
 
   Future<FirebaseUser> _getUser() async {
     return _currentUser = await FireBaseUtil.getUser();
+  }
+
+  Future<FirebaseUser> _getDataAnotherUser() async {
+    Map anotherUser = widget.chatData["users"]
+        .where((user) =>
+            user['uid'] != _currentUser.uid &&
+            user['email'] != _currentUser.email)
+        .toList()
+        .first;
+
+    setState(() {
+      _title = anotherUser['name'] ?? anotherUser['email'];
+    });
   }
 
   void _sendMessage({String text, PickedFile img}) async {
@@ -93,21 +97,55 @@ class _ChatScreenState extends State<ChatScreen> {
       _isLoading = false;
     });
 
-    //TODO: Se o documento ainda não existe
-    // DocumentReference documentChat =
-    //     Firestore.instance.collection('chats').document();
-    // documentChat.setData({
-    //   'users': widget.chatData["users"],
-    //   'messages': [],
-    //   'id': documentChat.documentID
-    // });
-
     String id = widget.chatData["id"];
 
+    DocumentReference chatObj =
+        Firestore.instance.collection('chats').document(id);
 
-    Firestore.instance.collection('chats').document(id).updateData({'lastMessage': Timestamp.now()});
+    chatObj.updateData({'lastMessage': Timestamp.now()});
 
     Firestore.instance.collection('chats/$id/messages').add(data);
+  }
+
+  Future<void> _updateUsers() async {
+    String id = widget.chatData["id"];
+
+    DocumentReference chatObj =
+        Firestore.instance.collection('chats').document(id);
+
+    DocumentSnapshot document = await chatObj.get();
+
+    List users = document.data["users"];
+
+    Map userObj = users
+        .where((user) =>
+            user['uid'] == _currentUser.uid ||
+            user['email'] == _currentUser.email)
+        .toList()
+        .first;
+
+    if (userObj['needConfirmation']) {
+      List usersId = document.data['usersId'];
+
+      usersId.remove(_currentUser.email);
+      usersId.add(_currentUser.uid);
+
+      chatObj.updateData({'usersId': usersId});
+
+      users.removeAt(users.indexOf(userObj));
+
+      userObj['name'] = _currentUser.displayName;
+      userObj['photoUrl'] = _currentUser.photoUrl;
+      userObj['uid'] = _currentUser.uid;
+      userObj['needConfirmation'] = false;
+
+      List updatedUsers = [...users, userObj];
+
+      chatObj.updateData({'users': updatedUsers});
+
+      document = await chatObj.get();
+      widget.chatData = document.data;
+    }
   }
 
   @override
@@ -118,36 +156,8 @@ class _ChatScreenState extends State<ChatScreen> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(_title),
-        centerTitle: true,
+        centerTitle: false,
         elevation: 0,
-        actions: [
-          _currentUser != null
-              ? IconButton(
-                  icon: Icon(Icons.exit_to_app),
-                  onPressed: () {
-                    FirebaseAuth.instance.signOut();
-                    googleSignIn.signOut();
-
-                    PageRouteBuilder _loginRoute = new PageRouteBuilder(
-                      pageBuilder: (BuildContext context, _, __) {
-                        return LoginScreen(true);
-                      },
-                    );
-
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      _loginRoute,
-                      (Route<dynamic> r) => false,
-                    );
-                  },
-                )
-              : IconButton(
-                  icon: Icon(Icons.person),
-                  onPressed: () {
-                    _getUser();
-                  },
-                )
-        ],
       ),
       body: Column(
         children: <Widget>[
@@ -176,13 +186,15 @@ class _ChatScreenState extends State<ChatScreen> {
                           itemCount: documents.length,
                           reverse: true,
                           itemBuilder: (context, index) {
-                            String senderUid = documents[index]["senderUid"];
+                            String senderUid =
+                                documents[index].data["senderUid"];
 
                             Map user = widget.chatData["users"]
-                                .firstWhere((user) => user["uid"] == senderUid);
+                                .where((user) => user["uid"] == senderUid)
+                                .first;
 
                             return ChatMessage(documents[index].data, user,
-                                (user["uid"] == _currentUser.uid));
+                                user["uid"] == _currentUser.uid);
                           });
                   }
                 }),

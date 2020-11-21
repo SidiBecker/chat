@@ -1,3 +1,4 @@
+import 'package:chat_app/firebase_util.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -35,9 +36,16 @@ class _ChatCardState extends State<ChatCard> {
         .limit(1)
         .getDocuments()
         .then((value) => {
-              setState(() {
-                lastMessageObj = value.documentChanges.first.document.data;
-              })
+              if (this.mounted && value.documentChanges != null)
+                {
+                  if (value.documentChanges.toList().isNotEmpty)
+                    {
+                      setState(() {
+                        lastMessageObj =
+                            value.documentChanges.first.document.data;
+                      })
+                    }
+                }
             });
 
     String formatTimestamp(DateTime date, String format) {
@@ -84,13 +92,15 @@ class _ChatCardState extends State<ChatCard> {
                       children: [
                         Text(
                           formatTimestamp(
-                              lastMessageObj["time"].toDate(), 'hh:mm'),
+                              lastMessageObj["time"].toDate().toLocal(),
+                              'hh:mm'),
                           style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.w300),
                         ),
                         Text(
                           formatTimestamp(
-                              lastMessageObj["time"].toDate(), 'd/MM/yy'),
+                              lastMessageObj["time"].toDate().toLocal(),
+                              'd/MM/yy'),
                           style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.w300),
                         )

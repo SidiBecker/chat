@@ -50,11 +50,20 @@ class ChatListState extends State<ChatList> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Insira o e-mail'),
-            content: TextField(
-              keyboardType: TextInputType.emailAddress,
-              controller: controllerEmail,
-              autofocus: true,
+            title: Text('Novo chat'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Insira o e-mail do contato que deseja iniciar uma conversa.',
+                  style: TextStyle(fontSize: 12),
+                ),
+                TextField(
+                  keyboardType: TextInputType.emailAddress,
+                  controller: controllerEmail,
+                  autofocus: true,
+                ),
+              ],
             ),
             actions: [
               MaterialButton(
@@ -62,7 +71,7 @@ class ChatListState extends State<ChatList> {
                 onPressed: () {
                   Navigator.of(context).pop(controllerEmail.text.toString());
                 },
-                child: Text('OK'),
+                child: Text('Bora'),
               )
             ],
           );
@@ -75,7 +84,7 @@ class ChatListState extends State<ChatList> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text(_title),
-        centerTitle: true,
+        centerTitle: false,
         elevation: 0,
         actions: [
           _currentUser != null
@@ -110,53 +119,52 @@ class ChatListState extends State<ChatList> {
       body: Column(
         children: <Widget>[
           Expanded(
-            child: StreamBuilder(
-                stream: Firestore.instance.collection('chats').orderBy('lastMessage').snapshots(),
-                builder: (context, chatSnapshot) {
-                  switch (chatSnapshot.connectionState) {
-                    case ConnectionState.none:
-                    case ConnectionState.waiting:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    default:
-                      if (_currentUser == null) {
-                        return Container();
+            child: _currentUser != null
+                ? StreamBuilder(
+                    stream: Firestore.instance
+                        .collection('chats')
+                        .where('usersId', arrayContainsAny: [
+                          _currentUser.uid,
+                          _currentUser.email
+                        ])
+                        .orderBy('lastMessage')
+                        .snapshots(),
+                    builder: (context, chatSnapshot) {
+                      switch (chatSnapshot.connectionState) {
+                        case ConnectionState.none:
+                        case ConnectionState.waiting:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        default:
+                          if (_currentUser == null) {
+                            return Container();
+                          }
+
+                          print('Usuário logado: ' + _currentUser.uid);
+
+                          List<DocumentSnapshot> chats =
+                              chatSnapshot.data.documents.reversed.toList();
+
+                          print('QTDE MSG: ' + chats.length.toString());
+
+                          return ListView.builder(
+                              itemCount: chats.length,
+                              itemBuilder: (context, index) {
+                                String chatId = chats[index].data["id"];
+
+                                print('chatId: ' + chatId);
+
+                                return InkWell(
+                                  child: ChatCard(
+                                      chats[index].data, _currentUser, chatId),
+                                  onTap: () => {_goToChat(chats[index].data)},
+                                  onLongPress: () => {print('onLongPress')},
+                                );
+                              });
                       }
-
-                      print('Usuário logado: ' + _currentUser.uid);
-
-                      List<DocumentSnapshot> document =
-                          chatSnapshot.data.documents.reversed.toList();
-
-                      List<DocumentSnapshot> chats = document
-                          .where((element) =>
-                              element["users"]
-                                  .where((user) =>
-                                      user["uid"] == _currentUser.uid ||
-                                      user["email"] == _currentUser.email)
-                                  .length >
-                              0)
-                          .toList();
-
-                      print('QTDE MSG: ' + chats.length.toString());
-
-                      return ListView.builder(
-                          itemCount: chats.length,
-                          itemBuilder: (context, index) {
-                            String chatId = chats[index].data["id"];
-
-                            print('chatId: ' + chatId);
-
-                            return InkWell(
-                              child: ChatCard(
-                                  chats[index].data, _currentUser, chatId),
-                              onTap: () => {_goToChat(chats[index].data)},
-                              onLongPress: () => {print('onLongPress')},
-                            );
-                          });
-                  }
-                }),
+                    })
+                : Container(),
           ),
         ],
       ),
@@ -185,25 +193,43 @@ class ChatListState extends State<ChatList> {
   }
 
   void _createChat(String email) {
-    if (email != _currentUser.email) {
+    //TODO: Validar conversa ja existente
+    if (email != null && email.isNotEmpty && email != _currentUser.email) {
       Map myUser = {
         'email': _currentUser.email,
         'uid': _currentUser.uid,
         'photoUrl': _currentUser.photoUrl,
-        'name': _currentUser.displayName
+        'name': _currentUser.displayName,
+        'needConfirmation': false,
       };
 
       Map anotherUser = {
         'email': email,
         'uid': null,
         'photoUrl': null,
-        'name': null
+        'name': null,
+        //TODO: Controle com essa flag
+        'needConfirmation': true,
       };
 
       List<Map> users = [myUser, anotherUser];
-      DocumentReference documentChat =
-          Firestore.instance.collection('chats').document();
-      documentChat.setData({'users': users, 'id': documentChat.documentID});
+
+      Firestore.instance.runTransaction((transaction) async {
+        DocumentReference documentChat =
+            Firestore.instance.collection('chats').document();
+
+        await documentChat.setData({
+          'usersId': [myUser['uid'], email],
+          'users': users,
+          'lastMessage': Timestamp.now(),
+          'id': documentChat.documentID
+        });
+
+        DocumentSnapshot documentCreated = await documentChat.snapshots().first;
+        Map chatObj = documentCreated.data;
+
+        _goToChat(chatObj);
+      });
     }
   }
 }
