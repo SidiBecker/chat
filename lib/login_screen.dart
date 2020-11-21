@@ -1,3 +1,4 @@
+import 'package:chat_app/chat_list.dart';
 import 'package:chat_app/chat_screen.dart';
 import 'package:chat_app/firebase_util.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,13 +22,19 @@ class _LoginScreenState extends State<LoginScreen> {
     },
   );
 
+  final PageRouteBuilder _chatListRoute = new PageRouteBuilder(
+    pageBuilder: (BuildContext context, _, __) {
+      return ChatList();
+    },
+  );
+
   void _login() async {
     FirebaseUser currentUser = await FireBaseUtil.getUser();
 
     print(currentUser.displayName);
 
     Navigator.pushAndRemoveUntil(
-        context, _chatRoute, (Route<dynamic> r) => false);
+        context, _chatListRoute, (Route<dynamic> r) => false);
   }
 
   @override
@@ -66,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "BEM-VINDO(A)",
+                        "Vem com a galera!",
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
